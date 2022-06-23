@@ -1,5 +1,9 @@
 #![allow(unused)]
 use clap::Parser;
+use core::num::ParseIntError;
+use std::fs::File;
+use std::io::BufRead;
+use std::io::BufReader;
 
 #[derive(Parser)]
 struct Cli {
@@ -10,15 +14,19 @@ struct Cli {
     path: std::path::PathBuf,
 }
 
-fn main() {
+fn main() -> Result<(), ParseIntError> {
     let args = Cli::parse();
-    let content = std::fs::read_to_string(&args.path).expect("Could not read file");
-    for line in content.lines() {
-        if line.contains(&args.pattern) {
-            println!("{}", line);
+    let f = File::open(args.path).expect("Can't Open File");
+    let reader = BufReader::new(f);
+    let lines = reader.lines();
+    let mut count = 0;
+    for line in lines {
+        let uline = &line.unwrap();
+        if uline.contains(&args.pattern) {
+            count = count + 1;
+            println!("{}", &uline);
         }
     }
-
-    // println!("Pattern: {}", args.pattern);
-    // println!("Path: {:?}", args.path);
+    println!("Number of Matches: {}", count);
+    Ok(())
 }
